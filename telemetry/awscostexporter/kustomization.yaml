@@ -1,0 +1,3 @@
+resources:
+- cronjob.yaml
+- netpol/default-egress.yaml

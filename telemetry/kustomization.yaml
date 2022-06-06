@@ -1,0 +1,11 @@
+resources:
+- common
+- healthcheck
+- pushgateway
+- awscostexporter
+- grafana
+- thanos
+- prometheus
+transformers:
+- vartransformer.yaml
+

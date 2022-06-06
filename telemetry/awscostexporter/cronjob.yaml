@@ -1,0 +1,30 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "awscostexporter-cronjob"
+  labels:
+    app.kubernetes.io/name: telemetry-awscostexporter
+spec:
+  schedule: 0 0 * * *
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: "telemetry-awscostexporter"
+            solution: addons
+            service: telemetry
+        spec:
+          containers:
+          - name: "awscostexporter"
+            image: "awscostexporter"
+            imagePullPolicy: IfNotPresent
+            env:
+              - name: COMPONENT_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+          serviceAccountName: awscostexporter-sa
+          restartPolicy: OnFailure

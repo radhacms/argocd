@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushgatewaylb
+  labels:
+    k8s-app: pushgateway
+    kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    app: "telemetry-pushgateway"
+  ports:
+  - port: 9091
+    targetPort: 9091

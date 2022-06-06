@@ -1,0 +1,109 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: telemetry
+  labels:
+    prometheus: telemetry
+spec:
+  image: "prometheus_official:v2.30.0"
+  version: __BUILD_NUMBER
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: prometheus
+              operator: In
+              values:
+              - prometheus-telemetry
+          topologyKey: failure-domain.beta.kubernetes.io/zone
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: prometheus
+            operator: In
+            values:
+            - prometheus-telemetry
+        topologyKey: kubernetes.io/hostname
+  enableAdminAPI: true
+  externalLabels:
+    prometheus_env: __NAMESPACE
+    env_purpose: dev
+  containers:
+  - image: "etcdmetrics:0.0.1839"
+    name: etcdmetrics
+    volumeMounts:
+    - mountPath: /etc/prometheus/config_out
+      name: config-out
+    env:
+    - name: ETCD_NODE_0
+      value: etcd-0.etcd.kube-system.svc.cluster.local
+    - name: ETCD_NODE_1
+      value: etcd-1.etcd.kube-system.svc.cluster.local
+    - name: ETCD_NODE_2
+      value: etcd-2.etcd.kube-system.svc.cluster.local
+    - name: PROMETHEUS_ETCD_CONFIG_PATH
+      value: /configuration/telemetry/prometheus
+    - name: PROMETHEUS_ETCD_CONFIG_PARSE_TIME
+      value: "500"
+    - name: PROMETHEUS_ETCD_CONFIG_INTERNAL_DIR
+      value: "/etc/prometheus/config_out/tgroups"
+  podMetadata:
+    annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '9090'
+    labels:
+      solution: addons
+      service: telemetry
+      app: prometheus
+  serviceAccountName: prometheus-telemetry
+  externalUrl: "http://localhost:8001/api/v1/namespaces/__NAMESPACE/services/prometheuslb/proxy/"
+  replicas: __prometheus_replicas
+  retention: __prometheus_retention
+  retentionSize: __prometheus_retentSize
+  scrapeInterval: __prometheus_scrapeInterval
+  scrapeTimeout: __prometheus_scrapeTimeout
+  securityContext:
+    fsGroup: 0
+    runAsNonRoot: false
+    runAsUser: 0
+  resources:
+    limits:
+      cpu: __prometheus_cpu_limit
+      memory: __prometheus_memory_limit
+    requests:
+      cpu: __prometheus_cpu_request
+      memory: __prometheus_memory_request
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector:
+    matchLabels:
+     scrapper: default
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: __prometheus_vct_storageClassName
+        resources:
+          requests:
+            storage: __prometheus_vct_storage
+  additionalScrapeConfigs:
+    name: telemetry-additional-scrape-configs
+    key: prometheus-additional.yaml
+  alerting:
+    alertmanagers:
+     - namespace: __NAMESPACE
+       name: alertmanager-service
+       port: 9093
+  ruleNamespaceSelector: {}
+  ruleSelector:
+    matchLabels:
+      role: alert-rules
+      prometheus: prometheus-telemetry
+  thanos:
+    baseImage: thanos:v0.25.0 #TODO
+    version: __BUILD_NUMBER
+    objectStorageConfig:
+      key: thanos.yaml
+      name: thanos-objstore
+

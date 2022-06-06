@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - thanos-compact-service.yaml
+  - thanos-compact-serviceMonitor.yaml
+  - thanos-compact-statefulSet.yaml
+  - thanos-query-service.yaml
+  - thanos-query-deployment.yaml
+  - thanos-query-serviceMonitor.yaml
+  - thanos-query-frontend-service.yaml
+  - thanos-query-frontend-deployment.yaml
+  - thanos-query-frontend-serviceMonitor.yaml
+  - thanos-store-service.yaml
+  - thanos-store-statefulSet.yaml
+  - thanos-store-serviceMonitor.yaml
+  - thanos.account.yaml
+  - netpol/thanos-compact-netpol.yaml
+  - netpol/thanos-store-netpol.yaml
+  - netpol/thanos-query-frontend-netpol.yaml
+  - netpol/thanos-query-netpol.yaml

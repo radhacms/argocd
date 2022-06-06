@@ -1,0 +1,8 @@
+apiVersion: myDevOpsTeam
+kind: VarTransformer
+metadata:
+  name: whatever
+  annotations:
+    config.kubernetes.io/function: |
+      exec:
+        path: plugin/VarTransformer.sh

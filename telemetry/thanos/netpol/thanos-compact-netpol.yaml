@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: thanos-compact-network-policy
+  annotations:
+    metamorph.update-network-policy: s3
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-compact
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    ports:
+    - protocol: TCP
+      port: 10902
+  egress:
+  - to:
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

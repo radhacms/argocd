@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "telemetry-healthcheck-deploy"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemetry-healthcheck
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: "RollingUpdate"
+  template:
+    metadata:
+      labels:
+        role: "telemetryhealthcheck--0-0-1--telemetryhealthcheck"
+        app: telemetry-healthcheck
+        solution: addons
+        service: telemetry
+    spec:
+      containers:
+      - name: "healthcheck"
+        image: "healthcheck:0.0.1839"
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "80m"
+          limits:
+            memory: "300Mi"
+            cpu: "500m"
+        readinessProbe:
+            httpGet:
+              path: /telemetry/v1/health
+              port: 5001
+            initialDelaySeconds: 60
+            timeoutSeconds: 60
+        livenessProbe:
+            httpGet:
+              path: /telemetry/v1/health
+              port: 5001
+            initialDelaySeconds: 60
+            timeoutSeconds: 60
+        volumeMounts:
+        - name: telemetryhealthcheck-config-volume
+          mountPath: /opt/health-check-config
+        args:
+        - main.py
+        - --host=0.0.0.0
+        - --port=5001
+        - --config=/opt/health-check-config/health-check.conf
+      volumes:
+      - name: telemetryhealthcheck-config-volume
+        configMap:
+          name: telemetry-healthcheck-cm
+          items:
+          - key: health-check.conf
+            path: health-check.conf

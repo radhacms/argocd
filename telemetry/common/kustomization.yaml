@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+namespace: __NAMESPACE
+resources:
+- namespace.yaml
+configurations:
+- customconfig.yaml
+
+images:
+- name: healthcheck
+  newName: __REPO_PATH/telemetry/healthcheck
+  newTag: __BUILD_NUMBER
+- name: awscostexporter
+  newName: __REPO_PATH/telemetry/awscostexporter
+  newTag: __BUILD_NUMBER
+- name: grafana-sidecar
+  newName: __REPO_PATH/telemetry/grafana-sidecar
+  newTag: __BUILD_NUMBER
+- name: grafana
+  newName: __REPO_PATH/telemetry/grafana
+  newTag: __BUILD_NUMBER
+- name: thanos
+  newName: __REPO_PATH/telemetry/thanos
+  newTag: __BUILD_NUMBER
+- name: prometheus_official
+  newName: __REPO_PATH/telemetry/prometheus_official
+  newTag: __BUILD_NUMBER
+- name: etcdmetrics
+  newName: __REPO_PATH/telemetry/etcdmetrics
+  newTag: __BUILD_NUMBER
+- name: pushgateway
+  newName: __REPO_PATH/telemetry/pushgateway #TODO
+  newTag: __BUILD_NUMBER
+transformers:
+- vartransformer.yaml
+

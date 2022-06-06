@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: prometheus-telemetry
+    role: alert-rules
+  name: awscostexporter-rules
+spec:
+  groups:
+  - name: edr-solution-metrics
+    rules:
+    - expr: sum(kube_persistentvolumeclaim_resource_requests_storage_bytes) by (persistentvolumeclaim) * on (persistentvolumeclaim) group_left(pod, namespace) sum(kube_pod_spec_volumes_persistentvolumeclaims_info{app!="kube-state-metrics"}) by (persistentvolumeclaim, pod, namespace)
+      record: kube_pod_persistentvolumeclaim_requests_storage_bytes
+    - expr: sum(kube_pod_labels) by (pod, namespace, label_solution, label_service, label_app) * on (pod, namespace) group_right(label_solution, label_service, label_app) sum(kube_pod_container_resource_requests_cpu_cores{app!="kube-state-metrics"}) by (pod, namespace)
+      record: edr_solution_requests_cpu_cores
+    - expr: sum(kube_pod_labels) by (pod, namespace, label_solution, label_service, label_app) * on (pod, namespace) group_right(label_solution, label_service, label_app) sum(kube_pod_container_resource_requests_memory_bytes{app!="kube-state-metrics"}) by (pod, namespace)
+      record: edr_solution_requests_memory_bytes
+    - expr: sum(kube_pod_labels) by (pod, namespace, label_solution, label_service, label_app) * on (pod, namespace) group_right(label_solution, label_service, label_app) sum(kube_pod_persistentvolumeclaim_requests_storage_bytes) by (pod, namespace)
+      record: edr_solution_persistentvolumeclaim_requests_storage_bytes
+    - expr: (edr_solution_requests_cpu_cores / scalar(sum(edr_solution_requests_cpu_cores)) + edr_solution_requests_memory_bytes / scalar(sum(edr_solution_requests_memory_bytes))) / 2
+      record: edr_solution_compute_score
+    - expr: edr_solution_persistentvolumeclaim_requests_storage_bytes / scalar(sum(edr_solution_persistentvolumeclaim_requests_storage_bytes))
+      record: edr_solution_persistentvolumeclaim_score
+    - expr: avg_over_time(edr_solution_compute_score[1d])
+      record: edr_solution_compute_score_avg
+    - expr: avg_over_time(edr_solution_persistentvolumeclaim_score[1d])
+      record: edr_solution_persistentvolumeclaim_score_avg
+    - expr: scalar(sum(aws_project_cost{service="Amazon Elastic Compute Cloud - Compute"})) * edr_solution_compute_score_avg offset 1d
+      record: edr_solution_compute_cost
+    - expr: scalar(sum(aws_project_cost{service="EC2 - Other", usage=~".*EBS:VolumeUsage.*"})) * edr_solution_persistentvolumeclaim_score_avg offset 1d
+      record: edr_solution_persistentvolumeclaim_cost

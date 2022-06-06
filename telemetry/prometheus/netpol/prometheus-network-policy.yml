@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    ports:
+    - protocol: TCP
+      port: 9090
+  - from:
+    ports:
+    - protocol: TCP
+      port: 10901
+  - from:
+    ports:
+    - protocol: TCP
+      port: 10902
+  egress: 
+  - to: []
+    ports: []

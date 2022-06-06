@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "pushgateway"
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: docker/default
+spec:
+  selector:
+    matchLabels:
+      app: "telemetry-pushgateway"
+  updateStrategy:
+    type: RollingUpdate
+  replicas: 1
+  serviceName: "pushgatewaylb"
+  template:
+    metadata:
+      labels:
+        role: "prometheus--0-0-1--pushgateway"
+        app: "telemetry-pushgateway"
+        solution: addons
+        service: telemetry
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9091'
+    spec:
+      containers:
+      - name: "telemetry-pushgateway"
+        image: "pushgateway:v1.4.2"
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9091
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9091
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        args:
+        - --persistence.file=/data/pushgateway/metrics.db
+        - --web.listen-address=0.0.0.0:9091
+        volumeMounts:
+        - name: pushgateway-data
+          mountPath: "/data"
+  volumeClaimTemplates:
+    - metadata:
+        labels:
+          app: pushgateway-data
+        name: pushgateway-data
+        namespace: addonsdevk8s
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: standard-encrypted-zones

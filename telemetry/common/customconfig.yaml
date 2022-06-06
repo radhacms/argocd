@@ -1,0 +1,29 @@
+## this is to replace image urls in CRD manifests. 
+# kustomize will consider below json paths while replacing the image with new tags and new names.
+# Below example will replace the image url of spec/image path in Prometheus kind manifests.
+#
+images:
+- path: spec/image
+  kind: Prometheus
+- path: spec/thanos/baseImage
+  kind: Prometheus
+
+#nameReference:
+#  - kind: Prometheus
+#    fieldSpecs:
+#      - kind: Prometheus
+#       path: spec/thanos/name
+#
+#varReference:
+#- path: spec/thanos/version
+#  kind: Prometheus
+#- path: spec/image
+#  kind: Prometheus
+#
+#source:
+#  kind: ConfigMap
+#  name: vars-config
+#targets:
+#  - select:
+#      kind: Prometheus
+#      name: prometheus-telemetry

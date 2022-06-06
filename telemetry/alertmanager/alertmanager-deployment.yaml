@@ -1,0 +1,46 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: alertmanager-alertmanager
+  labels:
+    app.kubernetes.io/name: telemetry-alertmanager
+spec:
+  image: "alertmanager_official"
+  version: "alertmanager_official"
+  replicas: 1
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: alertmanager
+              operator: In
+              values:
+              - telemetry-alertmanager
+          topologyKey: failure-domain.beta.kubernetes.io/zone
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: alertmanager
+            operator: In
+            values:
+            - telemetry-alertmanager
+        topologyKey: kubernetes.io/hostname
+  podMetadata:
+    labels:
+      solution: addons
+      service: telemetry
+      app: alertmanager
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 65534
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: standard
+        resources:
+          requests:
+            storage: "2Gi"

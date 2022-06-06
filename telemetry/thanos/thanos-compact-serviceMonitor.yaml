@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: database-compact
+    app.kubernetes.io/instance: thanos-compact
+    app.kubernetes.io/name: thanos-compact
+  name: thanos-compact-sm
+spec:
+  jobLabel: thanos-compact
+  endpoints:
+  - port: http
+    interval: 1m
+    scrapeTimeout: 30s
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: database-compact
+      app.kubernetes.io/instance: thanos-compact
+      app.kubernetes.io/name: thanos-compact

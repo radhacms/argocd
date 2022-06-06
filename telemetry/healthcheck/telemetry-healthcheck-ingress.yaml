@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/group.name: vnext-api
+    alb.ingress.kubernetes.io/scheme: internal
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /telemetry/v1/health
+  name: telemetry-healthcheck-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: telemetryhealthcheck
+            port:
+              number: 80
+        path: /telemetry/v1/health
+        pathType: Prefix

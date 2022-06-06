@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - healthcheck-deployment.yaml
+  - config/healthcheck-cm.yaml
+  - service.yaml
+  - netpol/default-egress-ingress-netpol.yaml
+  - telemetry-healthcheck-ingress.yaml
+

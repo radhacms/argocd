@@ -1,0 +1,12 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: alertmanager-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - telemetry-alertmanager

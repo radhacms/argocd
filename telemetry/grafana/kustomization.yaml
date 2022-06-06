@@ -1,0 +1,86 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rbac.yaml
+  - psp.yaml
+  - config/datasources/datasource_cloudwatch.yaml
+  - config/datasources/datasource_elasticsearch.yaml
+  - config/datasources/datasource_prometheus.yaml
+  - deployment.yaml
+  - grafana.svc.yaml
+  - telemetry.svc.yaml
+  - config/configmap-dashboard-provider.yaml
+  - config/grafana-cm.yaml
+  - secret/grafhelm-grafcharm.yaml
+  - netpol/grafana-network-policy.yaml
+configMapGenerator:
+- name: grafanadb-service-usage
+  behavior: create
+  files:
+  - config/dashboards/service-usage.json
+- name: grafanadb-thanos-bucket-replicate
+  behavior: create
+  files:
+  - config/dashboards/thanos-bucket-replicate.json
+- name: grafanadb-thanos-compact.json
+  behavior: create
+  files:
+  - config/dashboards/thanos-compact.json
+- name: grafanadb-thanos-overview
+  behavior: create
+  files:
+  - config/dashboards/thanos-overview.json
+- name: grafanadb-thanos-query
+  behavior: create
+  files:
+  - config/dashboards/thanos-query.json
+- name: grafanadb-thanos-sidecar
+  behavior: create
+  files:
+  - config/dashboards/thanos-sidecar.json
+- name: grafanadb-thanos-store
+  behavior: create
+  files:
+  - config/dashboards/thanos-store.json
+- name: grafanadb-cloud-watch-metamorph-kernel
+  behavior: create
+  files:
+  - config/dashboards/cloud-watch-metamorph-kernel.json
+- name: grafanadb-cluster-errors
+  behavior: create
+  files:
+  - config/dashboards/cluster-errors.json
+- name: grafanadb-cluster
+  behavior: create
+  files:
+  - config/dashboards/cluster.json
+- name: grafanadb-kubernetes-resource-requests
+  behavior: create
+  files:
+  - config/dashboards/kubernetes-resource-requests.json
+- name: grafanadb-namespaces
+  behavior: create
+  files:
+  - config/dashboards/namespaces.json
+- name: grafanadb-node-exporter-full
+  behavior: create
+  files:
+  - config/dashboards/node_exporter_full_1.1.json
+- name: grafanadb-node-exporter-server-metrics
+  behavior: create
+  files:
+  - config/dashboards/node_exporter_server_metrics.json
+- name: grafanadb-pods
+  behavior: create
+  files:
+  - config/dashboards/pods.json
+- name: grafanadb-aws-ec2-cost
+  behavior: create
+  files:
+  - config/dashboards/aws-ec2-cost.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+  labels:
+    grafana_dashboard: "1"

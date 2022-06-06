@@ -1,0 +1,18 @@
+resources:
+- alertmanager-deployment.yaml
+- service.yaml
+- pdb-deployment.yaml
+
+#configurations:
+#- skip-prefix.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+#---- secret generator from file, env (key=vale)
+secretGenerator:
+- name: alertmanager-alertmanager-alertmanager
+  files:
+  - secret/alertmanager.yaml
+
+#----- END secret generator  

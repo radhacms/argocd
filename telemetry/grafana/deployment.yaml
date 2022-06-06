@@ -1,0 +1,169 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: grafana-pdb
+  labels:
+    app: grafcharm
+    chart: grafcharm-4.0.4
+    release: grafhelm
+    heritage: Tiller
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: grafcharm
+      release: grafhelm
+
+---
+# Source: grafcharm/templates/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deploy
+  labels:
+    app: grafcharm
+    chart: grafcharm-4.0.4
+    release: grafhelm
+    heritage: Tiller
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: grafcharm
+      release: grafhelm
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: grafcharm
+        release: grafhelm
+        solution: addons
+        service: telemetry
+    spec:
+      serviceAccountName: grafana-sa
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+      initContainers:
+        - name: grafana-sc-datasources
+          image: "grafana-sidecar:1.0.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: METHOD
+              value: LIST
+            - name: LABEL
+              value: "grafana_datasource"
+            - name: FOLDER
+              value: "/etc/grafana/provisioning/datasources"
+            - name: RESOURCE
+              value: "both"
+            - name: NAMESPACE
+              value: "ALL"
+          resources:
+            {}            
+          volumeMounts:
+            - name: sc-datasources-volume
+              mountPath: "/etc/grafana/provisioning/datasources"
+      containers:
+        - name: grafana-sc-dashboard
+          image: "grafana-sidecar:1.0.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: LABEL
+              value: "grafana_dashboard"
+            - name: FOLDER
+              value: "/tmp/dashboards"
+            - name: RESOURCE
+              value: "both"
+            - name: NAMESPACE
+              value: "ALL"
+          resources:
+            {}            
+          volumeMounts:
+            - name: sc-dashboard-volume
+              mountPath: "/tmp/dashboards"
+        - name: grafana
+          image: "grafana:0.0.1910"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              mountPath: "/etc/grafana/grafana.ini"
+              subPath: grafana.ini
+            - name: storage
+              mountPath: "/var/lib/grafana"
+            - name: sc-dashboard-volume
+              mountPath: "/tmp/dashboards"
+            - name: sc-dashboard-provider
+              mountPath: "/etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml"
+              subPath: provider.yaml
+            - name: sc-datasources-volume
+              mountPath: "/etc/grafana/provisioning/datasources"
+          ports:
+            - name: service
+              containerPort: 80
+              protocol: TCP
+            - name: grafana
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafhelm-grafcharm
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafhelm-grafcharm
+                  key: admin-password
+            - name: GF_INSTALL_PLUGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: grafhelm-grafcharm
+                  key: plugins
+            - name: GF_PATHS_CONFIG
+              value: /etc/grafana/grafana.ini
+            - name: GF_PATHS_DATA
+              value: /var/lib/grafana
+            - name: GF_PATHS_LOGS
+              value: /opt/bitnami/grafana/logs
+            - name: GF_PATHS_PLUGINS
+              value: /var/lib/grafana/plugins
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1500Mi
+            requests:
+              cpu: 100m
+              memory: 300Mi
+            
+      volumes:
+        - name: config
+          configMap:
+            name: grafhelm-grafcharm
+        - name: storage
+          emptyDir: {}
+        - name: sc-dashboard-volume
+          emptyDir: {}
+        - name: sc-dashboard-provider
+          configMap:
+            name: grafhelm-grafcharm-config-dashboards
+        - name: sc-datasources-volume
+          emptyDir: {}

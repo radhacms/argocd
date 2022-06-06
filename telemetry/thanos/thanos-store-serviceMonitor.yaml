@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: object-store-gateway
+    app.kubernetes.io/instance: thanos-store
+    app.kubernetes.io/name: thanos-store
+  name: thanos-store-sm
+spec:
+  jobLabel: thanos-store
+  endpoints:
+  - port: http
+    interval: 1m
+    scrapeTimeout: 30s
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: object-store-gateway
+      app.kubernetes.io/instance: thanos-store
+      app.kubernetes.io/name: thanos-store

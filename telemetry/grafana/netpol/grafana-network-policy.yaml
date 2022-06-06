@@ -1,0 +1,66 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grafana-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: grafcharm
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  - ports: # Needs to communicate to k8 api
+    - protocol: TCP
+      port: 443
+  - ports: # Needs to communicate to k8 api
+    - protocol: TCP
+      port: 6443
+  - to:
+#    - podSelector:
+#        matchLabels:
+#          app: logging-database
+    ports:
+    - protocol: TCP
+      port: 9200
+  - to:
+#    - podSelector:
+#        matchLabels:
+#          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090
+  - to:
+#    - podSelector:
+#        matchLabels:
+#          app.kubernetes.io/name: thanos-query
+    ports:
+    - protocol: TCP
+      port: 9090
+  - to:
+#    - namespaceSelector:
+#        matchLabels:
+#         name: kube-system
+#     podSelector:
+#       matchLabels:
+#         k8s-app: kube-dns
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+#   - namespaceSelector:
+#       matchLabels:
+#         name: kube-system
+#     podSelector:
+#       matchLabels:
+#          app: etcd
+    ports:
+    - protocol: TCP
+      port: 2379

@@ -1,0 +1,12 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: prometheus-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchExpressions:
+    - key: prometheus
+      operator: In
+      values:
+      - prometheus-telemetry

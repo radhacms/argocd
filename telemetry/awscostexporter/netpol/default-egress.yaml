@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: awscostexporter-egress-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: telemetry-awscostexporter
+  policyTypes:
+  - Egress
+  egress:
+  - to:  #egress to pushgateway
+    ports:
+    - protocol: TCP
+      port: 9091  
+  - to:   #egress to kube dns
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:   #egress to etcd
+    ports:
+    - protocol: TCP
+      port: 2379

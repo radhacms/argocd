@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: telemetry-pushgateway-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: telemetry-pushgateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    ports:
+    - protocol: TCP
+      port: 9091
+  egress:
+  - to:
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    ports:
+    - protocol: TCP
+      port: 2379
